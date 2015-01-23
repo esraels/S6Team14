@@ -89,4 +89,9 @@ public class NetworkManager : MonoBehaviour
 	{
 		Debug.Log("Server Initialized");
 	}
+
+	private void OnConnectedToServer ()
+	{
+		Debug.Log("Connected to Server");
+	}
 }
