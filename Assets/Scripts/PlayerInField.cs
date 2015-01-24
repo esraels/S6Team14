@@ -69,14 +69,14 @@ public class PlayerInField : MonoBehaviour {
 
 		m_animator.SetInteger("move_dir", (int)aniValue);
 
+	}
 
-//		move = move * m_speed * Time.deltaTime;
-//		if(move.magnitude >= m_speedLimit){
-//			move = move.normalized * m_speedLimit;
-//		}
-//		transform.position += move;
 
-		//m_camera.localPosition = move;
+	public void ShowPasscode(int p_passcode){
+
+		//TODO: show UI above the player character that displays the passcode.
+		Debug.Log("The passcode is" + p_passcode);
 
 	}
+
 }
