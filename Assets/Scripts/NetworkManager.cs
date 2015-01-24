@@ -27,7 +27,7 @@ public class NetworkManager : MonoBehaviour
 
 	private const string m_gameName = "Team14";
 	private const string m_gameTypeName = "S6Team14Server";
-	private const string m_gamePort = 25565;
+	private const int m_gamePort = 25565;
 	private const int m_gameMaxPlayers = 2;
 
 	private HostData[] m_hostList;
