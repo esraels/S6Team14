@@ -20,12 +20,15 @@ public class NetworkManager : MonoBehaviour
 	[SerializeField] private GameObject m_serverPlayerPrefab;
 	[SerializeField] private GameObject m_clientPlayerPrefab;
 
-	private const string m_ipAddress = "127.0.0.1";
-	private const int m_gamePort = 23466;
+	private const string m_masterServerIpAddress = "127.0.0.1";
+	private const int m_masterServerPort = 23466;
+	private const string m_facilitatorIpAddress = "127.0.0.1";
 	private const int m_facilitatorPort = 50005;
+
 	private const string m_gameName = "Team14";
 	private const string m_gameTypeName = "S6Team14Server";
-	private const int m_maxPlayers = 4;
+	private const string m_gamePort = 25565;
+	private const int m_gameMaxPlayers = 2;
 
 	private HostData[] m_hostList;
 	private bool m_isHosting;
@@ -35,7 +38,7 @@ public class NetworkManager : MonoBehaviour
 	}
 	private bool m_isConnectedToServer;
 	public bool IsConnectedToServer
-	{
+	{	
 		get { return m_isConnectedToServer; }
 	}
 
@@ -43,9 +46,9 @@ public class NetworkManager : MonoBehaviour
 
 	private void Start ()
 	{
-		MasterServer.ipAddress = m_ipAddress;
-		MasterServer.port = m_gamePort;
-		Network.natFacilitatorIP = m_ipAddress;
+		MasterServer.ipAddress = m_masterServerIpAddress;
+		MasterServer.port = m_masterServerPort;
+		Network.natFacilitatorIP = m_facilitatorIpAddress;
 		Network.natFacilitatorPort = m_facilitatorPort;
 
 		m_hostList = new HostData[0];
@@ -105,7 +108,7 @@ public class NetworkManager : MonoBehaviour
 		DebugLogs.Log("Creating Server...");
 		try
 		{
-			Network.InitializeServer(m_maxPlayers, m_gamePort, !Network.HavePublicAddress());
+			Network.InitializeServer(m_gameMaxPlayers, m_gamePort, true);
 			MasterServer.RegisterHost(m_gameTypeName, m_gameName);
 		}
 		catch (Exception e)
