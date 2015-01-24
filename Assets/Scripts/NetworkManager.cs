@@ -16,14 +16,22 @@ public class NetworkManager : MonoBehaviour
 			return m_instance;
 		}
 	}
+	
+	[SerializeField] private GameObject m_serverPlayerPrefab;
+	[SerializeField] private GameObject m_clientPlayerPrefab;
 
 	private const string m_ipAddress = "127.0.0.1";
 	private const int m_gamePort = 25000;
 	private const string m_gameName = "Team14";
 	private const string m_gameTypeName = "S6Team14Server";
-	private const int m_maxPlayers = 2;
+	private const int m_maxPlayers = 4;
 
 	private HostData[] m_hostList;
+	private bool m_isHosting;
+	public bool IsHosting
+	{
+		get { return m_isHosting; }
+	}
 	private bool m_isConnectedToServer;
 	public bool IsConnectedToServer
 	{
@@ -31,7 +39,6 @@ public class NetworkManager : MonoBehaviour
 	}
 
 	private Rect m_connectionWindow = new Rect(20, 20, 200, 110);
-	private Rect m_fireDataWindow = new Rect(20, 150, 200, 100);
 
 	private void Start ()
 	{
@@ -40,17 +47,18 @@ public class NetworkManager : MonoBehaviour
 		//MasterServer.port = m_gamePort;
 
 		m_hostList = new HostData[0];
+		m_isHosting = false;
 		m_isConnectedToServer = false;
 	}
 
 	private void Update ()
 	{
-	
+
 	}
 
 	private void OnGUI ()
 	{
-		m_connectionWindow = GUI.Window(0, m_connectionWindow, ConnectionWindow, "");
+		m_connectionWindow = GUI.Window(1, m_connectionWindow, ConnectionWindow, "");
 	}
 
 	private void ConnectionWindow (int p_id)
@@ -90,22 +98,9 @@ public class NetworkManager : MonoBehaviour
 		}
 	}
 
-	private void FireDataWindow ()
-	{
-		if (GUILayout.Button("Send Position"))
-		{
-
-		}
-
-		if (GUILayout.Button("Send Data"))
-		{
-			
-		}
-	}
-
 	private void InitializeServer ()
 	{
-		Debug.Log("Creating Server...");
+		DebugLogs.Log("Creating Server...");
 		try
 		{
 			Network.InitializeServer(m_maxPlayers, m_gamePort, !Network.HavePublicAddress());
@@ -119,40 +114,52 @@ public class NetworkManager : MonoBehaviour
 
 	private void DisconnectFromServer ()
 	{
-		Debug.Log("Disconnecting from Server...");
+		DebugLogs.Log("Disconnecting from Server...");
 		Network.Disconnect();
 	}
 
 	private void RefreshServerList ()
 	{
-		Debug.Log("Refreshing Server List...");
+		DebugLogs.Log("Refreshing Server List...");
 		MasterServer.RequestHostList(m_gameTypeName);
 	}
 
 	private void OnMasterServerEvent (MasterServerEvent msEvent)
 	{
-		if (msEvent == MasterServerEvent.HostListReceived)
+		if (msEvent == MasterServerEvent.RegistrationSucceeded)
 		{
-			Debug.Log("Server List Refreshed");
+			DebugLogs.Log("Registration Succeeded");
+		}
+		else if (msEvent == MasterServerEvent.HostListReceived)
+		{
+			DebugLogs.Log("Server List Refreshed");
 			m_hostList = MasterServer.PollHostList();
 		}
 	}
 
 	private void ConnectToHost (HostData p_hostData)
 	{
-		Debug.Log("Connecting to Server...");
+		DebugLogs.Log("Connecting to Server...");
 		Network.Connect(p_hostData);
 	}
 
 	private void OnServerInitialized ()
 	{
-		Debug.Log("Server Initialized");
+		DebugLogs.Log("Server Initialized");		
+		m_isHosting = true;
+		SpawnServerPlayer();
 	}
 
 	private void OnConnectedToServer ()
 	{
-		Debug.Log("Connected to Server");
+		DebugLogs.Log("Connected to Server");
 		m_isConnectedToServer = true;
+		SpawnClientPlayer();
+	}
+
+	private void OnDisconnectedFromServer ()
+	{
+		DebugLogs.Log("Disconnected from Server");
 	}
 
 	public bool IsServer ()
@@ -163,5 +170,15 @@ public class NetworkManager : MonoBehaviour
 	public bool IsClient ()
 	{
 		return Network.isClient;
+	}
+
+	private void SpawnServerPlayer ()
+	{
+		Network.Instantiate(m_serverPlayerPrefab, Vector3.zero, Quaternion.identity, 0);
+	}
+
+	private void SpawnClientPlayer ()
+	{
+		Network.Instantiate(m_clientPlayerPrefab, Vector3.zero, Quaternion.identity, 0);
 	}
 }
