@@ -90,17 +90,6 @@ public class PlayerInField : MonoBehaviour {
 			Camera cam = m_camera.GetComponent<Camera>();
 			Vector3 screenPos = cam.WorldToScreenPoint(m_callout.position);
 			screenPos.y = Screen.height - screenPos.y;
-			//screenPos -= new Vector3(20,20,0);
-
-			//Vector2 sizeC = new Vector2(50,50);
-
-//			CircleCollider2D bounds = GetComponent<CircleCollider2D>();
-//			float playerHeight = bounds.radius;
-
-			//Vector2 posC = new Vector2(screenPos.x, screenPos.y - playerHeight - sizeC.y);
-			//Vector2 posText = new Vector2(posC.x + sizeC.x * 0.5f, posC.y + sizeC.y * 0.5f);
-
-			//GUI.Label(new Rect(posC.x, posC.y, sizeC.x, sizeC.y), m_texCallout);
 
 			Vector2 pos = new Vector2(screenPos.x + m_PasscodePos.x, screenPos.y - m_PasscodePos.y);
 			GUI.Label(new Rect(pos.x, pos.y, 50, 50), m_curPasscode);
@@ -112,8 +101,6 @@ public class PlayerInField : MonoBehaviour {
 
 		m_curPasscode = p_passcode;
 		m_callout.gameObject.SetActive(true);
-		//TODO: show UI above the player character that displays the passcode.
-		Debug.Log("The passcode is" + p_passcode);
 
 	}
 
