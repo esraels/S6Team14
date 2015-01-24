@@ -8,7 +8,7 @@ public class DoorObject : MonoBehaviour {
 		OPENING
 	};
 
-	public int m_passcode = 1234;
+	public string m_passcode = "1234";
 	bool m_bIsOpening;
 
 	Animator m_animator = null;
@@ -39,6 +39,25 @@ public class DoorObject : MonoBehaviour {
 		PlayerInField player = p_collidedObj.gameObject.GetComponent<PlayerInField>();
 		if(player){
 			player.ShowPasscode(m_passcode);
+		}
+	}
+
+	void OnTriggerExit2D(Collider2D p_collidedObj){
+		//=================================
+		// If player goes outside the range 
+		//   of this door, hide passcode.
+		//---------------------------------
+		PlayerInField player = p_collidedObj.gameObject.GetComponent<PlayerInField>();
+		if(player){
+			CircleCollider2D bounds = GetComponent<CircleCollider2D>();
+			Vector2 posP = player.transform.position;
+			Vector2 posG = transform.position;
+			float radius = bounds.radius * transform.localScale.x;
+
+			if((posP - posG).sqrMagnitude > radius * radius){
+				Debug.Log("  --player went outside the boundary");
+				player.HidePasscode();
+			}
 		}
 	}
 
