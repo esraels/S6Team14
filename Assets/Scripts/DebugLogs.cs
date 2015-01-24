@@ -8,7 +8,7 @@ public class DebugLogs : MonoBehaviour
 
 	private void Start ()
 	{
-		m_rect = new Rect(20, 150, Screen.width, Screen.height);
+		m_rect = new Rect(240, 20, Screen.width, Screen.height);
 		m_message = "Logs:";
 	}
 

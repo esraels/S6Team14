@@ -20,17 +20,6 @@ public class NetworkManager : MonoBehaviour
 	[SerializeField] private GameObject m_serverPlayerPrefab;
 	[SerializeField] private GameObject m_clientPlayerPrefab;
 
-	private const string m_masterServerIpAddress = "127.0.0.1";
-	private const int m_masterServerPort = 23466;
-	private const string m_facilitatorIpAddress = "127.0.0.1";
-	private const int m_facilitatorPort = 50005;
-
-	private const string m_gameName = "Team14";
-	private const string m_gameTypeName = "S6Team14Server";
-	private const int m_gamePort = 25565;
-	private const int m_gameMaxPlayers = 2;
-
-	private HostData[] m_hostList;
 	private bool m_isHosting;
 	public bool IsHosting
 	{
@@ -42,31 +31,22 @@ public class NetworkManager : MonoBehaviour
 		get { return m_isConnectedToServer; }
 	}
 
-	private Rect m_connectionWindow = new Rect(20, 20, 200, 110);
+	private Rect m_serverWindow = new Rect(20, 20, 200, 50);
+	private Rect m_clientWindow = new Rect(20, 90, 200, 50);
 
 	private void Start ()
 	{
-		MasterServer.ipAddress = m_masterServerIpAddress;
-		MasterServer.port = m_masterServerPort;
-		Network.natFacilitatorIP = m_facilitatorIpAddress;
-		Network.natFacilitatorPort = m_facilitatorPort;
-
-		m_hostList = new HostData[0];
 		m_isHosting = false;
 		m_isConnectedToServer = false;
 	}
 
-	private void Update ()
-	{
-
-	}
-
 	private void OnGUI ()
 	{
-		m_connectionWindow = GUI.Window(1, m_connectionWindow, ConnectionWindow, "");
+		m_serverWindow = GUI.Window(0, m_serverWindow, ServerWindow, "Create");
+		m_clientWindow = GUI.Window(1, m_clientWindow, ClientWindow, "Join");
 	}
 
-	private void ConnectionWindow (int p_id)
+	private void ServerWindow (int p_id)
 	{
 		if (Network.peerType == NetworkPeerType.Disconnected)
 		{
@@ -82,39 +62,31 @@ public class NetworkManager : MonoBehaviour
 				DisconnectFromServer();
 			}
 		}
+	}
 
-		if (GUILayout.Button("Refresh"))
+	private void ClientWindow (int p_id)
+	{
+		GUILayout.BeginHorizontal();
+		string ipAddress = GUILayout.TextField("ip address");
+		if (GUILayout.Button("Join"))
 		{
-			RefreshServerList();
+			ConnectToHost(ipAddress);
 		}
-		
-		if (m_hostList.Length > 0)
-		{
-			foreach (HostData host in m_hostList)
-			{
-				GUILayout.BeginHorizontal();
-				GUILayout.Box(host.gameName);
-				if (GUILayout.Button("Connect"))
-				{
-					ConnectToHost(host);
-				}
-				GUILayout.EndHorizontal();
-			}
-		}
+		GUILayout.EndHorizontal();
 	}
 
 	private void InitializeServer ()
 	{
 		DebugLogs.Log("Creating Server...");
-		try
-		{
-			Network.InitializeServer(m_gameMaxPlayers, m_gamePort, true);
-			MasterServer.RegisterHost(m_gameTypeName, m_gameName);
-		}
-		catch (Exception e)
-		{
-			Debug.Log(e.Message);
-		}
+		Network.incomingPassword = "";
+		Network.InitializeServer(2, 2500, !Network.HavePublicAddress());
+	}
+
+	private void OnServerInitialized ()
+	{
+		DebugLogs.Log("Server Initialized");		
+		m_isHosting = true;
+		SpawnServerPlayer();
 	}
 
 	private void DisconnectFromServer ()
@@ -123,36 +95,10 @@ public class NetworkManager : MonoBehaviour
 		Network.Disconnect();
 	}
 
-	private void RefreshServerList ()
-	{
-		DebugLogs.Log("Refreshing Server List...");
-		MasterServer.RequestHostList(m_gameTypeName);
-	}
-
-	private void OnMasterServerEvent (MasterServerEvent msEvent)
-	{
-		if (msEvent == MasterServerEvent.RegistrationSucceeded)
-		{
-			DebugLogs.Log("Registration Succeeded");
-		}
-		else if (msEvent == MasterServerEvent.HostListReceived)
-		{
-			DebugLogs.Log("Server List Refreshed");
-			m_hostList = MasterServer.PollHostList();
-		}
-	}
-
-	private void ConnectToHost (HostData p_hostData)
+	private void ConnectToHost (string p_ipAddress)
 	{
 		DebugLogs.Log("Connecting to Server...");
-		Network.Connect(p_hostData);
-	}
-
-	private void OnServerInitialized ()
-	{
-		DebugLogs.Log("Server Initialized");		
-		m_isHosting = true;
-		SpawnServerPlayer();
+		Network.Connect(p_ipAddress, 2500, "");
 	}
 
 	private void OnConnectedToServer ()
