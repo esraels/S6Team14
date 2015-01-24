@@ -4,18 +4,20 @@ using System;
 
 public class NetworkManager : MonoBehaviour
 {
-	private string m_gameName = "";
-	private string m_gamePort = "25566";
+	private const string m_ipAddress = "127.0.0.1";
+	private const int m_gamePort = 23466;
+	private const string m_gameName = "Team14";
+	private const string m_gameTypeName = "S6Team14Server";
+	private const int m_maxPlayers = 2;
+	private HostData[] m_hostList;
 
-	private const int k_maxPlayers = 2;
-	private const string k_gameTypeName = "S6Team14Server";
-
-	private Rect m_gameCreationRect = new Rect(20, 20, 200, 150);
-	private Rect m_gameListRect = new Rect(20, 190, 200, 200);
+	private Rect windowRect = new Rect(20, 20, 200, 110);
 
 	private void Start ()
 	{
-	
+		MasterServer.ipAddress = m_ipAddress;
+		MasterServer.port = m_gamePort;
+		m_hostList = new HostData[0];
 	}
 
 	private void Update ()
@@ -25,64 +27,85 @@ public class NetworkManager : MonoBehaviour
 
 	private void OnGUI ()
 	{
-		m_gameCreationRect = GUI.Window(0, m_gameCreationRect, GameCreationWindow, "Create Game");
-		m_gameListRect = GUI.Window(1, m_gameListRect, GameListWindow, "Select Game");
+		windowRect = GUI.Window(0, windowRect, WindowFunction, "");
 	}
 
-	private void GameCreationWindow (int p_id)
+	private void WindowFunction (int p_id)
 	{
 		if (Network.peerType == NetworkPeerType.Disconnected)
 		{
-			GUILayout.Label("Game Name");
-			m_gameName = GUILayout.TextField(m_gameName);
-			
-			GUILayout.Label("Port");
-			m_gamePort = GUILayout.TextField(m_gamePort);
-			
 			if (GUILayout.Button("Create"))
 			{
-				Debug.Log("Creating Server...");
-				try
-				{
-					Network.InitializeServer(k_maxPlayers, int.Parse(m_gamePort), !Network.HavePublicAddress());
-					MasterServer.RegisterHost(k_gameTypeName, m_gameName);
-				}
-				catch (Exception e)
-				{
-					Debug.Log(e.Message);
-				}
+				InitializeServer();
 			}
 		}
 		else
 		{
 			if (GUILayout.Button("Disconnect"))
 			{
-				Network.Disconnect();
+				DisconnectFromServer();
 			}
 		}
-	}
 
-	private void GameListWindow (int p_id)
-	{
 		if (GUILayout.Button("Refresh"))
 		{
-			MasterServer.RequestHostList("S6Team14Server");
+			RefreshServerList();
 		}
-
-		if (MasterServer.PollHostList().Length != 0)
+		
+		if (m_hostList.Length > 0)
 		{
-			HostData[] hostList = MasterServer.PollHostList();
-			foreach (HostData host in hostList)
+			foreach (HostData host in m_hostList)
 			{
 				GUILayout.BeginHorizontal();
 				GUILayout.Box(host.gameName);
 				if (GUILayout.Button("Connect"))
 				{
-					Network.Connect(host);
+					ConnectToHost(host);
 				}
 				GUILayout.EndHorizontal();
 			}
 		}
+	}
+
+	private void InitializeServer ()
+	{
+		Debug.Log("Creating Server...");
+		try
+		{
+			Network.InitializeServer(m_maxPlayers, m_gamePort, !Network.HavePublicAddress());
+			MasterServer.RegisterHost(m_gameTypeName, m_gameName);
+		}
+		catch (Exception e)
+		{
+			Debug.Log(e.Message);
+		}
+	}
+
+	private void DisconnectFromServer ()
+	{
+		Debug.Log("Disconnecting from Server...");
+		Network.Disconnect();
+	}
+
+	private void RefreshServerList ()
+	{
+		Debug.Log("Refreshing Server List...");
+		MasterServer.RequestHostList(m_gameTypeName);
+	}
+
+	void OnMasterServerEvent (MasterServerEvent msEvent)
+	{
+		Debug.Log("Server List Refreshed");
+		if (msEvent == MasterServerEvent.HostListReceived)
+		{
+			m_hostList = MasterServer.PollHostList();
+		}
+	}
+
+	private void ConnectToHost (HostData p_hostData)
+	{
+		Debug.Log("Connecting to Server...");
+		Network.Connect(p_hostData);
 	}
 
 	private void OnServerInitialized ()
