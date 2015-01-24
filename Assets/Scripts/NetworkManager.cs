@@ -21,7 +21,8 @@ public class NetworkManager : MonoBehaviour
 	[SerializeField] private GameObject m_clientPlayerPrefab;
 
 	private const string m_ipAddress = "127.0.0.1";
-	private const int m_gamePort = 25000;
+	private const int m_gamePort = 23466;
+	private const int m_facilitatorPort = 50005;
 	private const string m_gameName = "Team14";
 	private const string m_gameTypeName = "S6Team14Server";
 	private const int m_maxPlayers = 4;
@@ -42,9 +43,10 @@ public class NetworkManager : MonoBehaviour
 
 	private void Start ()
 	{
-		// TODO: Enable this portion if using local server
-		//MasterServer.ipAddress = m_ipAddress;
-		//MasterServer.port = m_gamePort;
+		MasterServer.ipAddress = m_ipAddress;
+		MasterServer.port = m_gamePort;
+		Network.natFacilitatorIP = m_ipAddress;
+		Network.natFacilitatorPort = m_facilitatorPort;
 
 		m_hostList = new HostData[0];
 		m_isHosting = false;
