@@ -157,6 +157,11 @@ public class NetworkManager : MonoBehaviour
 		SpawnClientPlayer();
 	}
 
+	private void OnFailedToConnect ()
+	{
+		DebugLogs.Log("Failed to Connect");
+	}
+
 	private void OnDisconnectedFromServer ()
 	{
 		DebugLogs.Log("Disconnected from Server");
