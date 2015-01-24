@@ -4,20 +4,43 @@ using System;
 
 public class NetworkManager : MonoBehaviour
 {
+	private static NetworkManager m_instance;
+	public static NetworkManager Instance
+	{
+		get
+		{
+			if ( m_instance == null )
+			{
+				m_instance = GameObject.FindObjectOfType<NetworkManager>();
+			}
+			return m_instance;
+		}
+	}
+
 	private const string m_ipAddress = "127.0.0.1";
-	private const int m_gamePort = 23466;
+	private const int m_gamePort = 25000;
 	private const string m_gameName = "Team14";
 	private const string m_gameTypeName = "S6Team14Server";
 	private const int m_maxPlayers = 2;
-	private HostData[] m_hostList;
 
-	private Rect windowRect = new Rect(20, 20, 200, 110);
+	private HostData[] m_hostList;
+	private bool m_isConnectedToServer;
+	public bool IsConnectedToServer
+	{
+		get { return m_isConnectedToServer; }
+	}
+
+	private Rect m_connectionWindow = new Rect(20, 20, 200, 110);
+	private Rect m_fireDataWindow = new Rect(20, 150, 200, 100);
 
 	private void Start ()
 	{
-		MasterServer.ipAddress = m_ipAddress;
-		MasterServer.port = m_gamePort;
+		// TODO: Enable this portion if using local server
+		//MasterServer.ipAddress = m_ipAddress;
+		//MasterServer.port = m_gamePort;
+
 		m_hostList = new HostData[0];
+		m_isConnectedToServer = false;
 	}
 
 	private void Update ()
@@ -27,10 +50,10 @@ public class NetworkManager : MonoBehaviour
 
 	private void OnGUI ()
 	{
-		windowRect = GUI.Window(0, windowRect, WindowFunction, "");
+		m_connectionWindow = GUI.Window(0, m_connectionWindow, ConnectionWindow, "");
 	}
 
-	private void WindowFunction (int p_id)
+	private void ConnectionWindow (int p_id)
 	{
 		if (Network.peerType == NetworkPeerType.Disconnected)
 		{
@@ -67,6 +90,19 @@ public class NetworkManager : MonoBehaviour
 		}
 	}
 
+	private void FireDataWindow ()
+	{
+		if (GUILayout.Button("Send Position"))
+		{
+
+		}
+
+		if (GUILayout.Button("Send Data"))
+		{
+			
+		}
+	}
+
 	private void InitializeServer ()
 	{
 		Debug.Log("Creating Server...");
@@ -93,11 +129,11 @@ public class NetworkManager : MonoBehaviour
 		MasterServer.RequestHostList(m_gameTypeName);
 	}
 
-	void OnMasterServerEvent (MasterServerEvent msEvent)
+	private void OnMasterServerEvent (MasterServerEvent msEvent)
 	{
-		Debug.Log("Server List Refreshed");
 		if (msEvent == MasterServerEvent.HostListReceived)
 		{
+			Debug.Log("Server List Refreshed");
 			m_hostList = MasterServer.PollHostList();
 		}
 	}
@@ -116,5 +152,16 @@ public class NetworkManager : MonoBehaviour
 	private void OnConnectedToServer ()
 	{
 		Debug.Log("Connected to Server");
+		m_isConnectedToServer = true;
+	}
+
+	public bool IsServer ()
+	{
+		return Network.isServer;
+	}
+
+	public bool IsClient ()
+	{
+		return Network.isClient;
 	}
 }
